@@ -89,11 +89,11 @@ namespace Daem0n.DI
         /// <returns></returns>
         private CheckResult CheckIllegal(Type t)
         {
-            if (singleton.ContainsKey(t))
+            if (singleton.ContainsKey(t) && singletonObjects[singleton[t]] != null)
             {
                 return new CheckResult(true, ServiceLifetime.Singleton);
             }
-            else if (scoped.ContainsKey(t))
+            else if (scoped.ContainsKey(t) && GetScoped(t) != null)
             {
                 return new CheckResult(true, ServiceLifetime.Scoped);
             }
@@ -129,19 +129,7 @@ namespace Daem0n.DI
         /// <returns></returns>
         public object Get(Type tSource)
         {
-            if (singleton.ContainsKey(tSource))
-            {
-                return singletonObjects[singleton[tSource]];
-            }
-            if (scoped.ContainsKey(tSource))
-            {
-                return GetScoped(tSource);
-            }
-            if (transient.ContainsKey(tSource))
-            {
-                return CreateInstance(transient[tSource]);
-            }
-            return null;
+            return Get(tSource, null, null);
         }
 
         /// <summary>
@@ -164,21 +152,33 @@ namespace Daem0n.DI
         /// <returns></returns>
         public object Get(Type tSource, Func<ServiceLifetime> getRegistionWay, Func<Type, Type> getTTarget)
         {
-            var tTarget = getTTarget(tSource);
+            var tTarget = getTTarget?.Invoke(tSource);
             var registionWay = getRegistionWay?.Invoke();
-            if ((getRegistionWay == null || registionWay == ServiceLifetime.Scoped) &&
-                singleton.ContainsRelation(tSource, tTarget))
+            if ((getRegistionWay == null || registionWay == ServiceLifetime.Singleton) &&
+                ((getTTarget == null && singleton.ContainsKey(tSource)) || singleton.ContainsRelation(tSource, tTarget)))
             {
+                if (tTarget == null)
+                {
+                    tTarget = singleton[tSource];
+                }
                 return singletonObjects[tTarget];
             }
             if ((getRegistionWay == null || registionWay == ServiceLifetime.Scoped) &&
-                (scoped.ContainsRelation(tSource, tTarget)))
+                ((getTTarget == null && scoped.ContainsKey(tSource)) || scoped.ContainsRelation(tSource, tTarget)))
             {
+                if (tTarget == null)
+                {
+                    tTarget = scoped[tSource];
+                }
                 return GetScoped(tTarget);
             }
-            if ((getRegistionWay == null || registionWay == ServiceLifetime.Scoped) &&
-                (transient.ContainsRelation(tSource, tTarget)))
+            if ((getRegistionWay == null || registionWay == ServiceLifetime.Transient) &&
+                ((getTTarget == null && singleton.ContainsKey(tSource)) || transient.ContainsRelation(tSource, tTarget)))
             {
+                if (tTarget == null)
+                {
+                    tTarget = transient[tSource];
+                }
                 return CreateInstance(tTarget);
             }
             return null;
@@ -249,8 +249,10 @@ namespace Daem0n.DI
         /// <returns></returns>
         public ObjectContainer AddSingleton(Type tSource, Type tTarget, object obj)
         {
-            singleton.Add(tSource, tTarget);
-            singletonObjects.Add(tTarget, obj);
+            if (singleton.Add(tSource, tTarget))
+            {
+                singletonObjects.Add(tTarget, obj);
+            }
             return this;
         }
 
@@ -366,7 +368,7 @@ namespace Daem0n.DI
             // Console.WriteLine($"{type}\t{type.IsGenericType}\t{type.IsGenericParameter}\t{type.IsGenericTypeDefinition}");
             if (type.ContainsGenericParameters)
             {
-                return null;
+                type = type.MakeGenericType(typeof(object));
             }
             foreach (var info in type.GetConstructors())
             {
@@ -376,7 +378,7 @@ namespace Daem0n.DI
                 }
                 if (info.GetParameters().Select(p => CheckIllegal(p.ParameterType)).Count(p => p == false) == 0)
                 {
-                    return info.Invoke(info.GetParameters().Select(p => CreateInstance(p.ParameterType)).ToArray());
+                    return info.Invoke(info.GetParameters().Select(p => Get(p.ParameterType)).ToArray());
                 }
             }
             return null;

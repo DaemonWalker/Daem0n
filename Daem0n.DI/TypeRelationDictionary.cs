@@ -7,7 +7,7 @@ namespace Daem0n.DI
 {
     public class TypeRelationDictionary : Dictionary<Type, List<Type>>
     {
-        public void Add(Type tSource, Type tTarget)
+        public bool Add(Type tSource, Type tTarget)
         {
             //if (tSource != tTarget &&
             //    (tTarget.IsInterface || tSource.IsAssignableFrom(tTarget) == false))
@@ -16,11 +16,20 @@ namespace Daem0n.DI
             //}
             if (this.ContainsKey(tSource))
             {
-                base[tSource].Add(tTarget);
+                if (base[tSource].Contains(tTarget))
+                {
+                    return false;
+                }
+                else
+                {
+                    base[tSource].Add(tTarget);
+                    return true;
+                }
             }
             else
             {
                 this.Add(tSource, new List<Type>() { tTarget });
+                return true;
             }
         }
         public bool ContainsRelation(Type tSrouce, Type tTarget)
