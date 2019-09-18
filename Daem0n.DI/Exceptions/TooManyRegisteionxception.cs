@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,12 +7,12 @@ namespace Daem0n.DI
 {
     public class TooManyRegisteionxception : Exception
     {
-        public TooManyRegisteionxception(Type type, string registedWay)
+        public TooManyRegisteionxception(Type type, ServiceLifetime registedWay)
         {
             this.RegistingType = type;
             this.RegistedWay = registedWay;
         }
         public Type RegistingType { get; }
-        public string RegistedWay { get; }
+        public ServiceLifetime RegistedWay { get; }
     }
 }

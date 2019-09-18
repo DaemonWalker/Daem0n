@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29230.61
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Daem0n.DI", "Daem0n.DI\Daem0n.DI.csproj", "{FCE10359-74DE-421A-A2AC-B674EA197EBC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Daem0n.DI", "Daem0n.DI\Daem0n.DI.csproj", "{FCE10359-74DE-421A-A2AC-B674EA197EBC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Daem0n.Test", "Daem0n.Test\Daem0n.Test.csproj", "{C7620385-E03D-48DD-BB8D-9F31C93A5D0A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Daem0n.Test", "Daem0n.Test\Daem0n.Test.csproj", "{C7620385-E03D-48DD-BB8D-9F31C93A5D0A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Daem0n.Test.Web", "Daem0n.Test.Web\Daem0n.Test.Web.csproj", "{579D6A89-A511-4756-9126-31D1E1495C3F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{C7620385-E03D-48DD-BB8D-9F31C93A5D0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C7620385-E03D-48DD-BB8D-9F31C93A5D0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C7620385-E03D-48DD-BB8D-9F31C93A5D0A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{579D6A89-A511-4756-9126-31D1E1495C3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{579D6A89-A511-4756-9126-31D1E1495C3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{579D6A89-A511-4756-9126-31D1E1495C3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{579D6A89-A511-4756-9126-31D1E1495C3F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

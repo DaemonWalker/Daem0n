@@ -1,4 +1,9 @@
-﻿using System;
+﻿using Daem0n.DI;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Threading;
 
 namespace Daem0n.Test
 {
@@ -6,8 +11,7 @@ namespace Daem0n.Test
     {
         static void Main(string[] args)
         {
-            var t = typeof(A);
-            var cs = t.GetConstructors();
+            Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Configure{0}Services", "BALABLA"));
         }
     }
     class A
