@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Daem0n.DI
 {
-    internal class TargetObjectContainer : Dictionary<Type, SingletonObject>
+    internal class TargetObjectContainer : Dictionary<Type, ObjectBuilder>
     {
         public new object this[Type t]
         {
@@ -29,7 +29,7 @@ namespace Daem0n.DI
         }
         public void Add(Type t, object obj)
         {
-            base.Add(t, new SingletonObject() { Obj = obj });
+            base.Add(t, new ObjectBuilder() { Obj = obj });
         }
         public void Add(Type t, Func<object> func)
         {
@@ -37,21 +37,17 @@ namespace Daem0n.DI
             {
                 if (base[t].Func != func)
                 {
-                    Console.WriteLine(func + "\n" + base[t].Func);
+                    //Console.WriteLine(func + "\n" + base[t].Func);
                     //throw new InvalidOperationException("Too Many Func");
                 }
             }
             else
             {
-                base.Add(t, new SingletonObject() { Func = func });
+                base.Add(t, new ObjectBuilder() { Func = func });
 
             }
         }
 
     }
-    internal class SingletonObject
-    {
-        public object Obj { get; set; }
-        public Func<object> Func { get; set; }
-    }
+    
 }

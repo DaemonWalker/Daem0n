@@ -34,7 +34,7 @@ namespace Daem0n.DI
         /// <summary>
         /// 线程单例对象集合
         /// </summary>
-        private Dictionary<Type, List<KeyValuePair<Thread, object>>> scopedObjects;
+        private Dictionary<Type, List<KeyValuePair<Thread, ObjectBuilder>>> scopedObjects;
 
         private TargetObjectContainer transientObjects;
 
@@ -103,6 +103,7 @@ namespace Daem0n.DI
             {
                 return new CheckResult(true, ServiceLifetime.Transient);
             }
+
             return false;
         }
 
@@ -172,7 +173,7 @@ namespace Daem0n.DI
                 {
                     tTarget = scoped[tSource];
                 }
-                return GetScoped(tTarget);
+                return GetScoped(tSource);
             }
             if ((getRegistionWay == null || registionWay == ServiceLifetime.Transient) &&
                 ((getTTarget == null && singleton.ContainsKey(tSource)) || transient.ContainsRelation(tSource, tTarget)))
@@ -304,21 +305,36 @@ namespace Daem0n.DI
         public ObjectContainer AddScope(Type tSource, Type tTarget, object obj)
         {
             scoped.Add(tSource, tTarget);
-            List<KeyValuePair<Thread, object>> list = null;
+            List<KeyValuePair<Thread, ObjectBuilder>> list = null;
             if (scopedObjects.ContainsKey(tTarget) == false)
             {
-                list = new List<KeyValuePair<Thread, object>>();
+                list = new List<KeyValuePair<Thread, ObjectBuilder>>();
                 scopedObjects.Add(tTarget, list);
             }
             else
             {
                 list = scopedObjects[tTarget];
             }
-            list.Add(new KeyValuePair<Thread, object>(Thread.CurrentThread, obj));
+            list.Add(new KeyValuePair<Thread, ObjectBuilder>(Thread.CurrentThread, new ObjectBuilder() { Obj = obj }));
             return this;
         }
 
-
+        public ObjectContainer AddScope(Type tSource, Type tTarget, Func<object> func)
+        {
+            scoped.Add(tSource, tTarget);
+            List<KeyValuePair<Thread, ObjectBuilder>> list = null;
+            if (scopedObjects.ContainsKey(tTarget) == false)
+            {
+                list = new List<KeyValuePair<Thread, ObjectBuilder>>();
+                scopedObjects.Add(tTarget, list);
+            }
+            else
+            {
+                list = scopedObjects[tTarget];
+            }
+            list.Add(new KeyValuePair<Thread, ObjectBuilder>(Thread.CurrentThread, new ObjectBuilder() { Func = func }));
+            return this;
+        }
 
         public ObjectContainer Set(Type tSource, Type tTarget, ServiceLifetime lifetime)
         {
@@ -377,16 +393,25 @@ namespace Daem0n.DI
         /// <returns></returns>
         private object GetScoped(Type tSource)
         {
-            var list = scopedObjects[tSource];
-            if (list.Count(p => p.Key == Thread.CurrentThread) == 0)
+            lock (Thread.CurrentThread)
             {
-                var obj = this.CreateInstance(tSource);
-                list.Add(new KeyValuePair<Thread, object>(Thread.CurrentThread, obj));
-                return obj;
-            }
-            else
-            {
-                return list.First(p => p.Key == Thread.CurrentThread).Value;
+                var tTarget = scoped[tSource];
+                var list = scopedObjects[tTarget];
+                if (list.Count(p => p.Key == Thread.CurrentThread) == 0)
+                {
+                    var obj = this.CreateInstance(tTarget);
+                    list.Add(new KeyValuePair<Thread, ObjectBuilder>(Thread.CurrentThread, new ObjectBuilder() { Obj = obj }));
+                    return obj;
+                }
+                else
+                {
+                    var builder = list.First(p => p.Key == Thread.CurrentThread).Value;
+                    if (builder.Obj == null)
+                    {
+                        builder.Obj = builder.Func?.Invoke() ?? CreateInstance(tTarget);
+                    }
+                    return builder.Obj;
+                }
             }
         }
 
@@ -434,9 +459,18 @@ namespace Daem0n.DI
                 {
                     return info.Invoke(null);
                 }
-                if (info.GetParameters().Select(p => this.Get(p.ParameterType)).Count(p => p == null) == 0)
+                if (info.GetParameters().Select(p =>
                 {
-                    return info.Invoke(info.GetParameters().Select(p => this.Get(p.ParameterType)).ToArray());
+                    var obj = this.GetTypeLifetime(p.ParameterType);
+                    if (obj == null)
+                    {
+                        ExtenssionMethods.Output($"{type} - {p.ParameterType} - {p.ParameterType.IsConstructedGenericType}", ConsoleColor.Yellow);
+                    }
+                    return obj;
+                }).Count(p => p == null) == 0)
+                {
+                    var parms = info.GetParameters().Select(p => this.Get(p.ParameterType)).ToArray();
+                    return info.Invoke(parms);
                 }
             }
             return null;
@@ -446,50 +480,63 @@ namespace Daem0n.DI
         {
             var genericType = tSource.GetGenericTypeDefinition();
             var paramTypes = tSource.GenericTypeArguments;
-            var tTarget = genericType.MakeGenericType(paramTypes);
-            ServiceLifetime lifetime;
-            if (getLifetime == null)
+            ServiceLifetime? lifetime;
+
+            if (tSource.IsConstructedGenericType &&
+                tSource.GetGenericTypeDefinition() == typeof(IEnumerable<>))
             {
-                if (singleton.ContainsKey(genericType))
-                {
-                    lifetime = ServiceLifetime.Singleton;
-                }
-                else if (scoped.ContainsKey(genericType))
-                {
-                    lifetime = ServiceLifetime.Scoped;
-                }
-                else if (transient.ContainsKey(genericType))
-                {
-                    lifetime = ServiceLifetime.Transient;
-                }
-                else
-                {
-                    return null;
-                }
+                var innerType = tSource.GenericTypeArguments.Single();
+                lifetime = GetTypeLifetime(innerType);
+                var listType = typeof(List<>).MakeGenericType(tSource.GenericTypeArguments);
+                Set(tSource, listType, lifetime.Value);
+                return Get(tSource);
             }
             else
             {
-                lifetime = getLifetime();
+                lifetime = getLifetime?.Invoke() ?? GetTypeLifetime(tSource);
+                if (lifetime == ServiceLifetime.Singleton && singleton.ContainsKey(genericType))
+                {
+                    var tTarget = singleton[genericType].MakeGenericType(paramTypes);
+                    singleton.Add(tSource, tTarget);
+                    singletonObjects.Add(tTarget, CreateInstance(tTarget));
+                    return GetSingleton(tSource);
+                }
+                if (lifetime == ServiceLifetime.Scoped && scoped.ContainsKey(genericType))
+                {
+                    scoped.Add(tSource, genericType.MakeGenericType(paramTypes));
+                    return GetScoped(tSource);
+                }
+                if (lifetime == ServiceLifetime.Transient && transient.ContainsKey(genericType))
+                {
+                    var tTarget = transient[genericType].MakeGenericType(paramTypes);
+                    transient.Add(tSource, tTarget);
+                    transientObjects.Add(tTarget, () => CreateInstance(tTarget));
+                    return GetTransinet(tSource);
+                }
+                ExtenssionMethods.Output($"Create2 {tSource} Generic Failed", ConsoleColor.Green);
+                return null;
             }
-            if (lifetime == ServiceLifetime.Singleton && singleton.ContainsKey(genericType))
+        }
+
+        private ServiceLifetime? GetTypeLifetime(Type t)
+        {
+            if (singleton.ContainsKey(t))
             {
-                singleton.Add(tSource, tTarget);
-                singletonObjects.Add(tTarget, CreateInstance(tTarget));
-                return GetSingleton(tSource);
+                return ServiceLifetime.Singleton;
             }
-            if (lifetime == ServiceLifetime.Scoped && scoped.ContainsKey(genericType))
+            if (scoped.ContainsKey(t))
             {
-                scoped.Add(tSource, genericType.MakeGenericType(paramTypes));
-                return GetScoped(tSource);
+                return ServiceLifetime.Scoped;
             }
-            if (lifetime == ServiceLifetime.Transient && transient.ContainsKey(genericType))
+            if (transient.ContainsKey(t))
             {
-                transient.Add(tSource, genericType.MakeGenericType(paramTypes));
-                transientObjects.Add(tTarget, () => CreateInstance(tTarget));
-                return GetTransinet(tSource);
+                return ServiceLifetime.Transient;
+            }
+            if (t.IsConstructedGenericType)
+            {
+                return GetTypeLifetime(t.GetGenericTypeDefinition());
             }
             return null;
-
         }
 
         /// <summary>
@@ -501,7 +548,7 @@ namespace Daem0n.DI
             scoped = new TypeRelationDictionary();
             transient = new TypeRelationDictionary();
             singletonObjects = new TargetObjectContainer();
-            scopedObjects = new Dictionary<Type, List<KeyValuePair<Thread, object>>>();
+            scopedObjects = new Dictionary<Type, List<KeyValuePair<Thread, ObjectBuilder>>>();
             ScopedScanCts = new CancellationTokenSource();
             transientObjects = new TargetObjectContainer();
             this.AddSingleton<IServiceProvider, ObjectContainer>(this);

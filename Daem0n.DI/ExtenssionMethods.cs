@@ -12,7 +12,11 @@ namespace Daem0n.DI
         {
             return Hashtable.Synchronized(hashtable);
         }
-        
 
+        public static void Output(string msg, ConsoleColor color)
+        {
+            Console.ForegroundColor = color;
+            Console.WriteLine(msg);
+        }
     }
 }
