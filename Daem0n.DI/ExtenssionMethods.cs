@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Daem0n.DI
@@ -11,5 +12,7 @@ namespace Daem0n.DI
         {
             return Hashtable.Synchronized(hashtable);
         }
+        
+
     }
 }
