@@ -164,7 +164,7 @@ namespace Daem0n.DI
                 {
                     tTarget = singleton[tSource];
                 }
-                return singletonObjects[tTarget];
+                return GetSingleton(tSource);
             }
             if ((getRegistionWay == null || registionWay == ServiceLifetime.Scoped) &&
                 ((getTTarget == null && scoped.ContainsKey(tSource)) || scoped.ContainsRelation(tSource, tTarget)))
@@ -182,7 +182,7 @@ namespace Daem0n.DI
                 {
                     tTarget = transient[tSource];
                 }
-                return this.GetTransinet(tSource);
+                return this.GetTransient(tSource);
             }
 
             if (tSource.IsConstructedGenericType)
@@ -421,10 +421,10 @@ namespace Daem0n.DI
             return singletonObjects[tTarget];
         }
 
-        private object GetTransinet(Type tSource)
+        private object GetTransient(Type tSource)
         {
             var tTarget = transient[tSource];
-            return transientObjects[tTarget];
+            return transientObjects.CreateObj(tTarget);
         }
 
         /// <summary>
@@ -511,7 +511,7 @@ namespace Daem0n.DI
                     var tTarget = transient[genericType].MakeGenericType(paramTypes);
                     transient.Add(tSource, tTarget);
                     transientObjects.Add(tTarget, () => CreateInstance(tTarget));
-                    return GetTransinet(tSource);
+                    return GetTransient(tSource);
                 }
                 ExtenssionMethods.Output($"Create2 {tSource} Generic Failed", ConsoleColor.Green);
                 return null;

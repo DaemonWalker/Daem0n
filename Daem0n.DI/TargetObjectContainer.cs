@@ -37,8 +37,7 @@ namespace Daem0n.DI
             {
                 if (base[t].Func != func)
                 {
-                    //Console.WriteLine(func + "\n" + base[t].Func);
-                    //throw new InvalidOperationException("Too Many Func");
+                    base[t].Func = func;
                 }
             }
             else
@@ -47,7 +46,14 @@ namespace Daem0n.DI
 
             }
         }
-
+        public object CreateObj(Type t)
+        {
+            if (base.ContainsKey(t) && base[t].Func != null)
+            {
+                return base[t].Func();
+            }
+            return null;
+        }
     }
-    
+
 }
