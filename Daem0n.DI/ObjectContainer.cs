@@ -216,11 +216,16 @@ namespace Daem0n.DI
             return this;
         }
 
+        public ObjectContainer AddTransient(Type tSource, Type tTarget, Func<object> func)
+        {
+            transient.Add(tSource, tTarget);
+            transientObjects.Add(tTarget, func);
+            return this;
+        }
+
         public ObjectContainer AddTransient(Type tSource, Func<object> func)
         {
-            transient.Add(tSource, tSource);
-            transientObjects.Add(tSource, func);
-            return this;
+            return AddTransient(tSource, tSource, func);
         }
 
         /// <summary>
@@ -333,6 +338,23 @@ namespace Daem0n.DI
                 list = scopedObjects[tTarget];
             }
             list.Add(new KeyValuePair<Thread, ObjectBuilder>(Thread.CurrentThread, new ObjectBuilder() { Func = func }));
+            return this;
+        }
+
+        public ObjectContainer Set(Type tSource, Type tTarget, ServiceLifetime lifetime, Func<object> func)
+        {
+            if (lifetime == ServiceLifetime.Scoped)
+            {
+                this.AddScope(tSource, tTarget, func);
+            }
+            else if (lifetime == ServiceLifetime.Singleton)
+            {
+                this.AddSingleton(tSource, tTarget, func);
+            }
+            else if (lifetime == ServiceLifetime.Transient)
+            {
+                this.AddTransient(tSource, tTarget, func);
+            }
             return this;
         }
 
@@ -461,7 +483,7 @@ namespace Daem0n.DI
                 }
                 if (info.GetParameters().Select(p =>
                 {
-                    var obj = this.GetTypeLifetime(p.ParameterType);
+                    var obj = this.Get(p.ParameterType);
                     if (obj == null)
                     {
                         ExtenssionMethods.Output($"{type} - {p.ParameterType} - {p.ParameterType.IsConstructedGenericType}", ConsoleColor.Yellow);
@@ -487,8 +509,17 @@ namespace Daem0n.DI
             {
                 var innerType = tSource.GenericTypeArguments.Single();
                 lifetime = GetTypeLifetime(innerType);
+                if (lifetime == null)
+                {
+                    return null;
+                }
                 var listType = typeof(List<>).MakeGenericType(tSource.GenericTypeArguments);
-                Set(tSource, listType, lifetime.Value);
+                Set(tSource, listType, lifetime.Value, () =>
+                 {
+                     var obj = Get(listType) ?? Activator.CreateInstance(listType);
+                     (obj as IList).Add(Get(innerType));
+                     return obj;
+                 });
                 return Get(tSource);
             }
             else
@@ -534,7 +565,15 @@ namespace Daem0n.DI
             }
             if (t.IsConstructedGenericType)
             {
-                return GetTypeLifetime(t.GetGenericTypeDefinition());
+                var outType = t.GetGenericTypeDefinition();
+                if (outType == typeof(IEnumerable<>))
+                {
+                    return GetTypeLifetime(t.GenericTypeArguments[0]);
+                }
+                else
+                {
+                    return GetTypeLifetime(outType);
+                }
             }
             return null;
         }
