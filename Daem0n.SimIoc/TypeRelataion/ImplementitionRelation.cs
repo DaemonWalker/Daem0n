@@ -7,10 +7,10 @@ using System.Text;
 
 namespace Daem0n.SimIoc.TypeRelataion
 {
-    public class ImplementitionRelation
+    internal class ImplementationRelation
     {
         private ConcurrentDictionary<Type, IEnumerable<Type>> relation;
-        private ConcurrentDictionary<Type, Func<object>> builders;
+        private ConcurrentDictionary<Type, BuilderInfo> builders;
 
 
         public bool Contains(Type tSource)
@@ -43,9 +43,9 @@ namespace Daem0n.SimIoc.TypeRelataion
             return list.FirstOrDefault();
         }
 
-        public void AddBuilder(Type tTarget, Func<object> func)
+        public void AddBuilder(Type tTarget, Func<IServiceProvider, object> func, object instance)
         {
-            if (builders.TryAdd(tTarget, func) == false)
+            if (builders.TryAdd(tTarget, new BuilderInfo(instance, func)) == false)
             {
                 throw new Exception($"{this.GetType()} Thread Error");
             }
@@ -56,12 +56,12 @@ namespace Daem0n.SimIoc.TypeRelataion
                 new List<Type>() { tTarget },
                 (t, list) => list.Append(t));
         }
-        public object GetObj(Type tTarget) => builders[tTarget]?.Invoke();
+        public BuilderInfo GetBuilder(Type tTarget) => builders[tTarget];
 
-        public void Add(Type tSource, Type tTarget, Func<object> builder)
+        public void Add(Type tSource, Type tTarget, Func<IServiceProvider, object> builder, object instacne)
         {
             this.AddRelation(tSource, tTarget);
-            this.AddBuilder(tTarget, builder);
+            this.AddBuilder(tTarget, builder, instacne);
         }
 
         private IEnumerable<Type> Get(Type tSource)
@@ -71,6 +71,16 @@ namespace Daem0n.SimIoc.TypeRelataion
                 throw new Exception("Thread Err");
             }
             return list;
+        }
+    }
+    internal sealed class BuilderInfo
+    {
+        public object Instance { get; private set; }
+        public Func<IServiceProvider, object> Builder { get; private set; }
+        public BuilderInfo(object instance, Func<IServiceProvider, object> builder)
+        {
+            this.Instance = instance;
+            this.Builder = builder;
         }
     }
 }
