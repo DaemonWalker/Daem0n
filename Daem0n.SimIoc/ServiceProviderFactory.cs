@@ -17,7 +17,7 @@ namespace Daem0n.SimIoc
 
         public IServiceProvider CreateServiceProvider(TypeRelationCollection containerBuilder)
         {
-            throw new NotImplementedException();
+            return new ServiceProvider(containerBuilder.Build());
         }
     }
 }

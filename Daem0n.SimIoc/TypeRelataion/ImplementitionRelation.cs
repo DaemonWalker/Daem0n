@@ -9,8 +9,8 @@ namespace Daem0n.SimIoc.TypeRelataion
 {
     internal class ImplementationRelation
     {
-        private ConcurrentDictionary<Type, IEnumerable<Type>> relation;
-        private ConcurrentDictionary<Type, BuilderInfo> builders;
+        private ConcurrentDictionary<Type, IEnumerable<Type>> relation = new ConcurrentDictionary<Type, IEnumerable<Type>>();
+        private ConcurrentDictionary<Type, BuilderInfo> builders = new ConcurrentDictionary<Type, BuilderInfo>();
 
 
         public bool Contains(Type tSource)
@@ -45,6 +45,10 @@ namespace Daem0n.SimIoc.TypeRelataion
 
         public void AddBuilder(Type tTarget, Func<IServiceProvider, object> func, object instance)
         {
+            if (builders.ContainsKey(tTarget))
+            {
+                return;
+            }
             if (builders.TryAdd(tTarget, new BuilderInfo(instance, func)) == false)
             {
                 throw new Exception($"{this.GetType()} Thread Error");

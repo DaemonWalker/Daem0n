@@ -2,6 +2,7 @@
 using Daem0n.SimIoc.TypeRelataion;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,9 +17,9 @@ namespace Daem0n.SimIoc
         private ImplementationRelation singleton;
         private ImplementationRelation transient;
         private ImplementationRelation scoped;
-        private ConcurrentDictionary<Type, object> singletonObjects;
-        private ConcurrentDictionary<Tuple<Thread, Type>, object> scopedObjects;
-        private ConcurrentDictionary<Type, Func<object>> transientObjects;
+        private ConcurrentDictionary<Type, object> singletonObjects = new ConcurrentDictionary<Type, object>();
+        private ConcurrentDictionary<Tuple<Thread, Type>, object> scopedObjects = new ConcurrentDictionary<Tuple<Thread, Type>, object>();
+        private ConcurrentDictionary<Type, Func<object>> transientObjects = new ConcurrentDictionary<Type, Func<object>>();
         internal ServiceProvider(IRelationContainer relationContainer)
         {
             this.singleton = relationContainer.GetSingleton();
@@ -27,12 +28,12 @@ namespace Daem0n.SimIoc
         }
         public object GetRequiredService(Type serviceType)
         {
-            throw new NotImplementedException();
+            return Get(serviceType);
         }
 
         public object GetService(Type serviceType)
         {
-            throw new NotImplementedException();
+            return Get(serviceType);
         }
 
         public object Get(Type tSource)
@@ -52,13 +53,39 @@ namespace Daem0n.SimIoc
             else if (tSource.IsConstructedGenericType)
             {
                 var outType = tSource.GetGenericTypeDefinition();
+                Func<IServiceProvider, object> func = null;
+                Type checkType = null;
+                Type newType = null;
                 if (outType == typeof(IEnumerable<>))
                 {
-
+                    checkType = tSource.GenericTypeArguments.Single();
+                    newType = typeof(List<>).MakeGenericType(checkType);
+                    func = _ => CreateListObject(checkType);
                 }
                 else
                 {
-
+                    func = _ => CreateGeneric(tSource);
+                    checkType = outType;
+                    newType = CreateGeneric(tSource).GetType();
+                }
+                if (singleton.Contains(checkType))
+                {
+                    singleton.Add(tSource, newType, null, func(this));
+                    return GetSingleton(tSource);
+                }
+                else if (scoped.Contains(checkType))
+                {
+                    singleton.Add(tSource, newType, func, null);
+                    return GetScoped(tSource);
+                }
+                else if (transient.Contains(checkType))
+                {
+                    transient.Add(tSource, newType, func, null);
+                    return GetTransient(tSource);
+                }
+                else
+                {
+                    return null;
                 }
             }
             else
@@ -130,16 +157,14 @@ namespace Daem0n.SimIoc
             }
             else
             {
-                Array.Sort(constructors,
-                    (c1, c2) => c2.GetParameters().Length.CompareTo(c1.GetParameters().Length));
-                constructor = constructors.First();
-                var hsParms = new HashSet<ParameterInfo>(constructor.GetParameters());
-                for (var i = 1; i < constructors.Length; i++)
+                //Array.Sort(constructors,
+                //    (c1, c2) => c2.GetParameters().Length.CompareTo(c1.GetParameters().Length));
+                //constructor = constructors.First();
+                //var hsParms = new HashSet<Type>(constructor.GetParameters().Select(p => p.ParameterType));
+                for (var i = 0; i < constructors.Length; i++)
                 {
-                    if (hsParms.IsSupersetOf(constructors[i].GetParameters()) == false)
-                    {
-                        throw new Exception("Invalid Parm");
-                    }
+                    constructor = constructors[i];
+                    for(int k=0;k<constructor.g)
                 }
                 parms = constructor.GetParameters();
             }
@@ -209,6 +234,14 @@ namespace Daem0n.SimIoc
             {
                 return null;
             }
+        }
+
+        private object CreateListObject(Type tSource)
+        {
+            var listType = typeof(List<>).MakeGenericType(tSource.GenericTypeArguments.Single());
+            var listObj = (IList)Activator.CreateInstance(listType);
+            listObj.Add(Get(tSource.GenericTypeArguments.Single()));
+            return listObj;
         }
 
         private bool CheckType(Type tSource)

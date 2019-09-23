@@ -13,7 +13,6 @@ namespace Daem0n.SimIoc.TypeRelataion
         private ImplementationRelation singleton;
         private ImplementationRelation transient;
         private ImplementationRelation scoped;
-        private IServiceProvider serviceProvider;
         private object GenerateObject(Type type)
         {
             return new object();
@@ -42,15 +41,15 @@ namespace Daem0n.SimIoc.TypeRelataion
         {
             if (lifetime == ServiceLifetime.Scoped)
             {
-                scoped.Add(tSource, tTarget, builder);
+                scoped.Add(tSource, tTarget, builder,instance);
             }
             else if (lifetime == ServiceLifetime.Singleton)
             {
-                singleton.Add(tSource, tTarget, builder);
+                singleton.Add(tSource, tTarget, builder,instance);
             }
             else if (lifetime == ServiceLifetime.Transient)
             {
-                transient.Add(tSource, tTarget, builder);
+                transient.Add(tSource, tTarget, builder,instance);
             }
         }
         public TypeRelationCollection()
@@ -70,7 +69,7 @@ namespace Daem0n.SimIoc.TypeRelataion
                 }
                 else if (descriptor.ImplementationFactory != null)
                 {
-                    this.Set(descriptor.ServiceType, descriptor.Lifetime, () => descriptor.ImplementationFactory(serviceProvider));
+                    this.Set(descriptor.ServiceType, descriptor.Lifetime, _ => descriptor.ImplementationFactory(_));
                 }
                 else
                 {

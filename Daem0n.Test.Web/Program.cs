@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Daem0n.DI;
+using Daem0n.SimIoc;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -25,6 +26,6 @@ namespace Daem0n.Test.Web
                 {
                     webBuilder.UseStartup<Startup>();
                 })
-            .UseServiceProviderFactory(new OCServiceProviderFactory());
+            .UseServiceProviderFactory(new ServiceProviderFactory());
     }
 }
