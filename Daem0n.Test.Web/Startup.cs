@@ -5,7 +5,10 @@ using System.Threading.Tasks;
 using Daem0n.DI;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -26,13 +29,17 @@ namespace Daem0n.Test.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.PostConfigure<ConsoleLifetimeOptions>(_ => _.SuppressStatusMessages = false);
-            services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(0.5));
-            services.PostConfigure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(0.5));
-            services.AddSingleton<IList<int>, List<int>>();
-            services.AddScoped<IList<string>, List<string>>();
-            // var factory = new DefaultServiceProviderFactory();
-            //factory.CreateBuilder
+            services.Configure<ConsoleLifetimeOptions>(_ => { });
+            services.PostConfigure<ConsoleLifetimeOptions>(_ => { });
+            services.Configure<HostOptions>(_ => { });
+            services.PostConfigure<HostOptions>(_ => { });
+            services.Configure<SocketTransportOptions>(_ => { });
+            services.PostConfigure<SocketTransportOptions>(_ => { }); 
+            services.Configure<KestrelServerOptions>(_ => { });
+            services.PostConfigure<KestrelServerOptions>(_ => { });
+            services.Configure<FormOptions>(_ => { });
+            services.PostConfigure<FormOptions>(_ => { });
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

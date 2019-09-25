@@ -86,12 +86,21 @@ namespace Daem0n.SimIoc
                 }
                 else
                 {
+                    Console.WriteLine(tSource);
                     return null;
                 }
             }
             else
             {
-                return Activator.CreateInstance(tSource);
+                if (tSource.IsInterface)
+                {
+                    Console.WriteLine(tSource);
+                    return null;
+                }
+                else
+                {
+                    return Activator.CreateInstance(tSource);
+                }
             }
         }
         private object GetSingleton(Type tSource)
@@ -222,6 +231,7 @@ namespace Daem0n.SimIoc
             }
             else
             {
+                Console.WriteLine(tSource);
                 return null;
             }
         }
@@ -255,6 +265,7 @@ namespace Daem0n.SimIoc
             }
             else
             {
+                Console.WriteLine(tSource);
                 return null;
             }
         }
