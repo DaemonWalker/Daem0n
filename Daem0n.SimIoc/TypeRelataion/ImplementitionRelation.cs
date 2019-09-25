@@ -76,6 +76,19 @@ namespace Daem0n.SimIoc.TypeRelataion
             }
             return list;
         }
+        internal List<string> Contains(string name)
+        {
+            var list = this.relation.Where(_ => _.Key.Name.Contains(name));
+            var r = new List<string>();
+            foreach (var item in list)
+            {
+                foreach (var v in item.Value)
+                {
+                    r.Add($"{item.Key.FullName} -> {v.FullName}");
+                }
+            }
+            return r;
+        }
     }
     internal sealed class BuilderInfo
     {

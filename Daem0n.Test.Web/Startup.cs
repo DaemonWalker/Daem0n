@@ -26,9 +26,12 @@ namespace Daem0n.Test.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.PostConfigure<ConsoleLifetimeOptions>(_ => _.SuppressStatusMessages = false);
+            services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(0.5));
+            services.PostConfigure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(0.5));
             services.AddSingleton<IList<int>, List<int>>();
             services.AddScoped<IList<string>, List<string>>();
-           // var factory = new DefaultServiceProviderFactory();
+            // var factory = new DefaultServiceProviderFactory();
             //factory.CreateBuilder
         }
 

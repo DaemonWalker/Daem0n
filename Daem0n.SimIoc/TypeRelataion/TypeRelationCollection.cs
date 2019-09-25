@@ -41,15 +41,15 @@ namespace Daem0n.SimIoc.TypeRelataion
         {
             if (lifetime == ServiceLifetime.Scoped)
             {
-                scoped.Add(tSource, tTarget, builder,instance);
+                scoped.Add(tSource, tTarget, builder, instance);
             }
             else if (lifetime == ServiceLifetime.Singleton)
             {
-                singleton.Add(tSource, tTarget, builder,instance);
+                singleton.Add(tSource, tTarget, builder, instance);
             }
             else if (lifetime == ServiceLifetime.Transient)
             {
-                transient.Add(tSource, tTarget, builder,instance);
+                transient.Add(tSource, tTarget, builder, instance);
             }
         }
         public TypeRelationCollection()
@@ -61,8 +61,13 @@ namespace Daem0n.SimIoc.TypeRelataion
 
         public void Populate(IServiceCollection serviceDescriptors)
         {
+            var list = new List<ServiceDescriptor>();
             foreach (var descriptor in serviceDescriptors)
             {
+                if (descriptor.Lifetime == ServiceLifetime.Singleton && descriptor.ServiceType.Name.Contains("IConfigureOptions"))
+                {
+                    list.Add(descriptor);
+                }
                 if (descriptor.ImplementationType != null)
                 {
                     Set(descriptor.ServiceType, descriptor.ImplementationType, descriptor.Lifetime);

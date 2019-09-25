@@ -25,6 +25,7 @@ namespace Daem0n.SimIoc
             this.singleton = relationContainer.GetSingleton();
             this.transient = relationContainer.GetTransient(); ;
             this.scoped = relationContainer.GetScoped();
+            this.singleton.Add(typeof(IServiceProvider), this.GetType(), null, this);
         }
         public object GetRequiredService(Type serviceType)
         {
@@ -90,7 +91,7 @@ namespace Daem0n.SimIoc
             }
             else
             {
-                return null;
+                return Activator.CreateInstance(tSource);
             }
         }
         private object GetSingleton(Type tSource)
@@ -164,12 +165,34 @@ namespace Daem0n.SimIoc
                 for (var i = 0; i < constructors.Length; i++)
                 {
                     constructor = constructors[i];
-                    for(int k=0;k<constructor.g)
+                    var check = true;
+                    foreach (var parm in constructor.GetParameters())
+                    {
+                        if (Get(parm.ParameterType) == null)
+                        {
+                            constructor = null;
+                            check = false;
+                            break;
+                        }
+                    }
+                    if (check)
+                    {
+                        break;
+                    }
                 }
-                parms = constructor.GetParameters();
+                if (constructor != null)
+                {
+                    parms = constructor.GetParameters();
+                }
+                else
+                {
+                    constructor = constructors[0];
+                    parms = constructor.GetParameters();
+                }
             }
+            var ps = parms.Select(_ => Get(_.ParameterType)).ToArray();
             //var constructorParms =;
-            return constructor.Invoke(parms.Select(_ => Get(_.ParameterType)).ToArray());
+            return constructor.Invoke(ps);
         }
         private object CreateGeneric(Type tSource)
         {
@@ -238,9 +261,9 @@ namespace Daem0n.SimIoc
 
         private object CreateListObject(Type tSource)
         {
-            var listType = typeof(List<>).MakeGenericType(tSource.GenericTypeArguments.Single());
+            var listType = typeof(List<>).MakeGenericType(tSource);
             var listObj = (IList)Activator.CreateInstance(listType);
-            listObj.Add(Get(tSource.GenericTypeArguments.Single()));
+            listObj.Add(Get(tSource));
             return listObj;
         }
 
