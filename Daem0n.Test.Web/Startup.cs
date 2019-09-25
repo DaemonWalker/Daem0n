@@ -29,16 +29,16 @@ namespace Daem0n.Test.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.Configure<ConsoleLifetimeOptions>(_ => { });
-            services.PostConfigure<ConsoleLifetimeOptions>(_ => { });
-            services.Configure<HostOptions>(_ => { });
-            services.PostConfigure<HostOptions>(_ => { });
-            services.Configure<SocketTransportOptions>(_ => { });
-            services.PostConfigure<SocketTransportOptions>(_ => { }); 
-            services.Configure<KestrelServerOptions>(_ => { });
-            services.PostConfigure<KestrelServerOptions>(_ => { });
-            services.Configure<FormOptions>(_ => { });
-            services.PostConfigure<FormOptions>(_ => { });
+            //services.Configure<ConsoleLifetimeOptions>(_ => { });
+            //services.PostConfigure<ConsoleLifetimeOptions>(_ => { });
+            //services.Configure<HostOptions>(_ => { });
+            //services.PostConfigure<HostOptions>(_ => { });
+            //services.Configure<SocketTransportOptions>(_ => { });
+            //services.PostConfigure<SocketTransportOptions>(_ => { }); 
+            //services.Configure<KestrelServerOptions>(_ => { });
+            //services.PostConfigure<KestrelServerOptions>(_ => { });
+            //services.Configure<FormOptions>(_ => { });
+            //services.PostConfigure<FormOptions>(_ => { });
 
         }
 

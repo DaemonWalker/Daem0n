@@ -67,7 +67,8 @@ namespace Daem0n.SimIoc
                 {
                     func = _ => CreateGeneric(tSource);
                     checkType = outType;
-                    newType = CreateGeneric(tSource).GetType();
+                    var obj = CreateGeneric(tSource);
+                    newType = obj?.GetType();
                 }
                 if (singleton.Contains(checkType))
                 {
@@ -87,20 +88,12 @@ namespace Daem0n.SimIoc
                 else
                 {
                     Console.WriteLine(tSource);
-                    return null;
+                    return func(this);
                 }
             }
             else
             {
-                if (tSource.IsInterface)
-                {
-                    Console.WriteLine(tSource);
-                    return null;
-                }
-                else
-                {
-                    return Activator.CreateInstance(tSource);
-                }
+                return null;
             }
         }
         private object GetSingleton(Type tSource)
@@ -274,7 +267,11 @@ namespace Daem0n.SimIoc
         {
             var listType = typeof(List<>).MakeGenericType(tSource);
             var listObj = (IList)Activator.CreateInstance(listType);
-            listObj.Add(Get(tSource));
+            var obj = Get(tSource);
+            if (obj != null)
+            {
+                listObj.Add(obj);
+            }
             return listObj;
         }
 
