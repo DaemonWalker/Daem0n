@@ -146,6 +146,10 @@ namespace Daem0n.SimIoc
         }
         private object CreateObject(Type t)
         {
+            if (t.Name.Contains("GenericWebHostService"))
+            {
+
+            }
             var constructors = t.GetConstructors().Where(p => p.IsPublic == true).ToArray();
             ConstructorInfo constructor = null;
             ParameterInfo[] parms = null;

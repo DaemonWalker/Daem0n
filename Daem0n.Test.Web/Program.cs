@@ -15,7 +15,11 @@ namespace Daem0n.Test.Web
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            var builder = CreateHostBuilder(args);
+            var host = builder.Build();
+            //var serviceProvider = host.Services as ServiceProvider;
+            host.Run();
+            //host.Dispose();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -23,6 +27,6 @@ namespace Daem0n.Test.Web
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                }).UseServiceProviderFactory(new ServiceProviderFactory());
+                });//.UseServiceProviderFactory(new ServiceProviderFactory());
     }
 }
