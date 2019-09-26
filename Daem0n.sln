@@ -11,7 +11,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Daem0n.Test.Web", "Daem0n.T
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Daem0n.SimIoc", "Daem0n.SimIoc\Daem0n.SimIoc.csproj", "{CB2BB0F9-1621-4AF0-966D-F77E0E525002}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Daem0n.gRPC.Demo", "Daem0n.gRPC.Demo\Daem0n.gRPC.Demo.csproj", "{323A16D2-235E-4153-B4A8-F72774FB7090}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Daem0n.gRPC.Demo", "Daem0n.gRPC.Demo\Daem0n.gRPC.Demo.csproj", "{323A16D2-235E-4153-B4A8-F72774FB7090}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Daem0n.SimIoc.Test", "Daem0n.SimIoc.Test\Daem0n.SimIoc.Test.csproj", "{90C64CB4-B8CF-469E-B44B-B893BC04D9D6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SimIoc", "SimIoc", "{80E8DCC0-C69D-4115-ACB0-386BD7A4A8BC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,9 +43,17 @@ Global
 		{323A16D2-235E-4153-B4A8-F72774FB7090}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{323A16D2-235E-4153-B4A8-F72774FB7090}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{323A16D2-235E-4153-B4A8-F72774FB7090}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90C64CB4-B8CF-469E-B44B-B893BC04D9D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90C64CB4-B8CF-469E-B44B-B893BC04D9D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90C64CB4-B8CF-469E-B44B-B893BC04D9D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90C64CB4-B8CF-469E-B44B-B893BC04D9D6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{CB2BB0F9-1621-4AF0-966D-F77E0E525002} = {80E8DCC0-C69D-4115-ACB0-386BD7A4A8BC}
+		{90C64CB4-B8CF-469E-B44B-B893BC04D9D6} = {80E8DCC0-C69D-4115-ACB0-386BD7A4A8BC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BE8FC8EC-5A9D-4075-BA57-4238A367DB03}

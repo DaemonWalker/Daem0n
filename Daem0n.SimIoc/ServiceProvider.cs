@@ -12,7 +12,7 @@ using System.Threading;
 
 namespace Daem0n.SimIoc
 {
-    public class ServiceProvider : IServiceProvider, ISupportRequiredService
+    public class ServiceProvider : IServiceProvider, ISupportRequiredService, IDisposable
     {
         private ImplementationRelation singleton;
         private ImplementationRelation transient;
@@ -308,6 +308,24 @@ namespace Daem0n.SimIoc
             else
             {
                 return false;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                singleton = null;
+                transient = null;
+                scoped = null;
+                singletonObjects = null;
+                transientObjects = null;
+                scopedObjects = null;
             }
         }
     }
