@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,12 +8,12 @@ using System.Text;
 
 namespace Daem0n.SimIoc.TypeRelataion
 {
-    internal class ImplementationRelation
+    internal class ImplementationRelation : IEnumerable<KeyValuePair<Type, IEnumerable<Type>>>
     {
         private ConcurrentDictionary<Type, IEnumerable<Type>> relation = new ConcurrentDictionary<Type, IEnumerable<Type>>();
         private ConcurrentDictionary<Type, BuilderInfo> builders = new ConcurrentDictionary<Type, BuilderInfo>();
 
-
+        public List<IEnumerable<Type>> GetAllValues => this.relation.Values.ToList();
         public bool Contains(Type tSource)
         {
             if (tSource == null)
@@ -89,6 +90,16 @@ namespace Daem0n.SimIoc.TypeRelataion
             }
             return r;
         }
+
+        public IEnumerator<KeyValuePair<Type, IEnumerable<Type>>> GetEnumerator()
+        {
+            foreach (var kv in this.relation)
+            {
+                yield return kv;
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
     }
     internal sealed class BuilderInfo
     {

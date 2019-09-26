@@ -27,6 +27,17 @@ namespace Daem0n.SimIoc
             this.scoped = relationContainer.GetScoped();
             this.singleton.Add(typeof(IServiceProvider), this.GetType(), null, this);
         }
+        public ServiceProvider Init()
+        {
+            //foreach (var kv in singleton)
+            //{
+            //    foreach (var type in kv.Value)
+            //    {
+            //        Get(type);
+            //    }
+            //}
+            return this;
+        }
         public object GetRequiredService(Type serviceType)
         {
             return Get(serviceType);
@@ -323,6 +334,22 @@ namespace Daem0n.SimIoc
                 singleton = null;
                 transient = null;
                 scoped = null;
+                foreach (var kv in singletonObjects)
+                {
+                    if (kv.Value is IDisposable obj)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"singleton {obj.GetType()} disposed");
+                        obj.Dispose();
+                    }
+                }
+                foreach (var kv in scopedObjects)
+                {
+                    if (kv.Value is IDisposable obj)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"scoped {obj.GetType()} disposed");
+                        obj.Dispose();
+                    }
+                }
                 singletonObjects = null;
                 transientObjects = null;
                 scopedObjects = null;

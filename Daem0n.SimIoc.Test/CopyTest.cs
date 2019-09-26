@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection.Specification.Fakes;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Xunit;
@@ -18,6 +19,7 @@ namespace Daem0n.SimIoc.Test
         [Fact]
         public void Test()
         {
+            Debug.WriteLine("start");
             var serviceCollection = new TestServiceCollection();
             serviceCollection.AddSingleton<FakeDisposeCallback>();
             serviceCollection.AddTransient<IFakeOuterService, FakeDisposableCallbackOuterService>();
