@@ -43,6 +43,14 @@ namespace Daem0n.SimIoc.TypeRelataion
             var list = Get(tSource);
             return list.FirstOrDefault();
         }
+        public IEnumerable<Type> GetTargets(Type tSource)
+        {
+            if (Contains(tSource) == false)
+            {
+                return null;
+            }
+            return Get(tSource).Reverse();
+        }
 
         public void AddBuilder(Type tTarget, Func<IServiceProvider, object> func, object instance)
         {
@@ -59,7 +67,12 @@ namespace Daem0n.SimIoc.TypeRelataion
         {
             relation.AddOrUpdate(tSource,
                 new List<Type>() { tTarget },
-                (t, list) => list.Append(t));
+                (t, list) =>
+                {
+                    var l = list.ToList();
+                    l.Insert(0, tTarget);
+                    return l;
+                });
         }
         public BuilderInfo GetBuilder(Type tTarget) => builders[tTarget];
 

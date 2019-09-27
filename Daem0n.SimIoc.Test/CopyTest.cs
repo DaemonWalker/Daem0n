@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Specification.Fakes;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -16,30 +17,38 @@ namespace Daem0n.SimIoc.Test
             var factory = new ServiceProviderFactory();
             return factory.CreateServiceProvider(factory.CreateBuilder(serviceCollection));
         }
-        [Fact]
-        public void Test()
+        [Theory]
+        [InlineData(typeof(IFakeService), typeof(FakeService), typeof(IFakeService), ServiceLifetime.Scoped)]
+        [InlineData(typeof(IFakeService), typeof(FakeService), typeof(IFakeService), ServiceLifetime.Singleton)]
+        [InlineData(typeof(IFakeOpenGenericService<>), typeof(FakeOpenGenericService<>), typeof(IFakeOpenGenericService<IServiceProvider>), ServiceLifetime.Scoped)]
+        [InlineData(typeof(IFakeOpenGenericService<>), typeof(FakeOpenGenericService<>), typeof(IFakeOpenGenericService<IServiceProvider>), ServiceLifetime.Singleton)]
+        public void ResolvesDifferentInstancesForServiceWhenResolvingEnumerable(Type serviceType, Type implementation, Type resolve, ServiceLifetime lifetime)
         {
-            Debug.WriteLine("start");
-            var serviceCollection = new TestServiceCollection();
-            serviceCollection.AddSingleton<FakeDisposeCallback>();
-            serviceCollection.AddTransient<IFakeOuterService, FakeDisposableCallbackOuterService>();
-            serviceCollection.AddSingleton<IFakeMultipleService, FakeDisposableCallbackInnerService>();
-            serviceCollection.AddScoped<IFakeMultipleService, FakeDisposableCallbackInnerService>();
-            serviceCollection.AddTransient<IFakeMultipleService, FakeDisposableCallbackInnerService>();
-            serviceCollection.AddSingleton<IFakeService, FakeDisposableCallbackInnerService>();
+            // Arrange
+            var serviceCollection = new TestServiceCollection
+            {
+                ServiceDescriptor.Describe(serviceType, implementation, lifetime),
+                ServiceDescriptor.Describe(serviceType, implementation, lifetime),
+                ServiceDescriptor.Describe(serviceType, implementation, lifetime)
+            };
+
             var serviceProvider = CreateServiceProvider(serviceCollection);
+            using (var scope = serviceProvider.CreateScope())
+            {
+                var enumerable = (scope.ServiceProvider.GetService(typeof(IEnumerable<>).MakeGenericType(resolve)) as IEnumerable)
+                    .OfType<object>().ToArray();
+                var service = scope.ServiceProvider.GetService(resolve);
 
-            var callback = serviceProvider.GetService<FakeDisposeCallback>();
-            var outer = serviceProvider.GetService<IFakeOuterService>();
-            var multipleServices = outer.MultipleServices.ToArray();
+                // Assert
+                Assert.Equal(3, enumerable.Length);
+                Assert.NotNull(enumerable[0]);
+                Assert.NotNull(enumerable[1]);
+                Assert.NotNull(enumerable[2]);
 
-            // Act
-            ((IDisposable)serviceProvider).Dispose();
-
-            // Assert
-            Assert.Equal(outer, callback.Disposed[0]);
-            Assert.Equal(multipleServices.Reverse(), callback.Disposed.Skip(1).Take(3).OfType<IFakeMultipleService>());
-            Assert.Equal(outer.SingleService, callback.Disposed[4]);
+                Assert.NotEqual(enumerable[0], enumerable[1]);
+                Assert.NotEqual(enumerable[1], enumerable[2]);
+                Assert.Equal(service, enumerable[2]);
+            }
         }
     }
 }
