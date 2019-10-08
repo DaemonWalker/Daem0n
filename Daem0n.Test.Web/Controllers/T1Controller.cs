@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Daem0n.Test.Web.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -11,14 +12,10 @@ namespace Daem0n.Test.Web.Controllers
     [Route("api/[controller]")]
     public class T1Controller : ControllerBase
     {
-        private IConfiguration configuration { get; }
-        private IList<int> numbers;
-        private IList<string> names;
-        public T1Controller(IConfiguration configuration, IList<int> numbers, IList<string> names)
+        IModel model;
+        public T1Controller(IModel model)
         {
-            this.configuration = configuration;
-            this.numbers = numbers;
-            this.names = names;
+            this.model = model;
         }
 
         [HttpGet]

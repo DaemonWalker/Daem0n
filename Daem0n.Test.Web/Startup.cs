@@ -29,6 +29,7 @@ namespace Daem0n.Test.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddScoped<IList<int>,>
             //services.Configure<ConsoleLifetimeOptions>(_ => { });
             //services.PostConfigure<ConsoleLifetimeOptions>(_ => { });
             //services.Configure<HostOptions>(_ => { });
