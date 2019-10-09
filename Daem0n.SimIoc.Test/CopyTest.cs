@@ -17,37 +17,24 @@ namespace Daem0n.SimIoc.Test
             var factory = new ServiceProviderFactory();
             return factory.CreateServiceProvider(factory.CreateBuilder(serviceCollection));
         }
-        [Theory]
-        [InlineData(typeof(IFakeService), typeof(FakeService), typeof(IFakeService), ServiceLifetime.Scoped)]
-        [InlineData(typeof(IFakeService), typeof(FakeService), typeof(IFakeService), ServiceLifetime.Singleton)]
-        [InlineData(typeof(IFakeOpenGenericService<>), typeof(FakeOpenGenericService<>), typeof(IFakeOpenGenericService<IServiceProvider>), ServiceLifetime.Scoped)]
-        [InlineData(typeof(IFakeOpenGenericService<>), typeof(FakeOpenGenericService<>), typeof(IFakeOpenGenericService<IServiceProvider>), ServiceLifetime.Singleton)]
-        public void ResolvesDifferentInstancesForServiceWhenResolvingEnumerable(Type serviceType, Type implementation, Type resolve, ServiceLifetime lifetime)
+        [Fact]
+        public void ScopedServiceCanBeResolved()
         {
             // Arrange
-            var serviceCollection = new TestServiceCollection
-            {
-                ServiceDescriptor.Describe(serviceType, implementation, lifetime),
-                ServiceDescriptor.Describe(serviceType, implementation, lifetime),
-                ServiceDescriptor.Describe(serviceType, implementation, lifetime)
-            };
+            var collection = new TestServiceCollection();
+            collection.AddScoped<IFakeScopedService, FakeService>();
+            var provider = CreateServiceProvider(collection);
 
-            var serviceProvider = CreateServiceProvider(serviceCollection);
-            using (var scope = serviceProvider.CreateScope())
+            // Act
+            using (var scope = provider.CreateScope())
             {
-                var enumerable = (scope.ServiceProvider.GetService(typeof(IEnumerable<>).MakeGenericType(resolve)) as IEnumerable)
-                    .OfType<object>().ToArray();
-                var service = scope.ServiceProvider.GetService(resolve);
+                var providerScopedService = provider.GetService<IFakeScopedService>();
+                var scopedService1 = scope.ServiceProvider.GetService<IFakeScopedService>();
+                var scopedService2 = scope.ServiceProvider.GetService<IFakeScopedService>();
 
                 // Assert
-                Assert.Equal(3, enumerable.Length);
-                Assert.NotNull(enumerable[0]);
-                Assert.NotNull(enumerable[1]);
-                Assert.NotNull(enumerable[2]);
-
-                Assert.NotEqual(enumerable[0], enumerable[1]);
-                Assert.NotEqual(enumerable[1], enumerable[2]);
-                Assert.Equal(service, enumerable[2]);
+                Assert.NotSame(providerScopedService, scopedService1);
+                Assert.Same(scopedService1, scopedService2);
             }
         }
     }

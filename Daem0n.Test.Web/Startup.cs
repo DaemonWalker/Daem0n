@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Daem0n.DI;
+using Daem0n.Test.Web.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http.Features;
@@ -29,7 +30,8 @@ namespace Daem0n.Test.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddScoped<IList<int>,>
+            services.AddScoped<IModel, Model>();
+            services.AddTransient<IEnumerable<IModel>, List<IModel>>();
             //services.Configure<ConsoleLifetimeOptions>(_ => { });
             //services.PostConfigure<ConsoleLifetimeOptions>(_ => { });
             //services.Configure<HostOptions>(_ => { });
