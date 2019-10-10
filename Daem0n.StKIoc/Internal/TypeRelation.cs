@@ -7,28 +7,77 @@ using System.Text;
 
 namespace Daem0n.StKIoc.Internal
 {
-    class TypeRelationCollection
+    class TypeRelationCollection : IDisposable
     {
-        private ConcurrentDictionary<Type, List<TypeRecord>> dict = new ConcurrentDictionary<Type, List<TypeRecord>>();
-        public TypeRecord Add(Type service, Type implement, ServiceLifetime lifetime)
+        private bool disposed = false;
+        private HashSet<Type> types = new HashSet<Type>();
+        private ConcurrentBag<TypeRecord> bag = new ConcurrentBag<TypeRecord>();
+        public TypeRecord Add(Type service, Type implement, ServiceLifetime lifetime, object instance = null, Func<IServiceProvider, object> factory = null, bool buildFlag = false)
         {
-            var list = dict.GetOrAdd(service, new List<TypeRecord>());
-            list.Add(new TypeRecord(lifetime, implement));
-            return list.Last();
+            if (types.Contains(service) == false)
+            {
+                types.Add(service);
+            }
+            var record = new TypeRecord(lifetime, service, implement, instance, factory, buildFlag);
+            bag.Add(record);
+            return record;
         }
         public TypeRecord Get(Type service)
         {
-            dict.TryGetValue(service, out var list);
-            return list?.First();
+            if (types.Contains(service) == false)
+            {
+                return null;
+            }
+            return bag.LastOrDefault(p => p.ServiceType == service);
         }
         public List<TypeRecord> GetAll(Type service)
         {
-            dict.TryGetValue(service, out var list);
-            return list;
+            if (types.Contains(service) == false)
+            {
+                return null;
+            }
+            return bag.Where(_ =>
+            {
+                if (_.ServiceType == service)
+                {
+                    return true;
+                }
+                if (service.IsConstructedGenericType)
+                {
+                    var outType = service.GetGenericTypeDefinition();
+                    if (_.ServiceType == outType)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }).ToList();
         }
         public bool Contains(Type service)
         {
-            return this.Get(service) != null;
+            return types.Contains(service);
+        }
+
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        protected virtual void Dispose(bool disposing)
+        {
+            if (this.disposed == false)
+            {
+                if (disposing)
+                {
+                    types = null;
+                    bag = null;
+                }
+                this.disposed = true;
+            }
+        }
+        ~TypeRelationCollection()
+        {
+            this.Dispose(false);
         }
     }
 }

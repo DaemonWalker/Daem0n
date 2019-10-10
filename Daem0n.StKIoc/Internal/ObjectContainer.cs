@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,47 +7,17 @@ namespace Daem0n.StKIoc.Internal
 {
     class ObjectContainer
     {
-        private object instance;
-        private Func<object> factory;
-        public ObjectContainer(object instance)
+        public object Instance { get; private set; }
+        public string ID { get; }
+        public IServiceScope ServiceScope { get; }
+        public ServiceLifetime Lifetime { get; }
+        public ObjectContainer(object instance, ServiceLifetime lifetime) : this(instance, lifetime, null) { }
+        public ObjectContainer(object instance, ServiceLifetime lifetime, IServiceScope serviceScope)
         {
-            this.instance = instance;
-        }
-        public ObjectContainer(Func<object> func)
-        {
-            this.factory = func;
-        }
-        public ObjectContainer() { }
-        public object GetObject()
-        {
-            if (this.instance != null)
-            {
-                return this.instance;
-            }
-            if (this.factory != null)
-            {
-                return factory.Invoke();
-            }
-            return null;
-        }
-        public object GetInstacne()
-        {
-            if (this.instance == null)
-            {
-                if (this.factory != null)
-                {
-                    this.instance = this.factory.Invoke();
-                }
-                else
-                {
-                    return null;
-                }
-            }
-            return this.instance;
-        }
-        public object CallFactory()
-        {
-            return this.factory?.Invoke();
+            this.Instance = instance;
+            this.Lifetime = lifetime;
+            this.ServiceScope = serviceScope;
+            this.ID = ToolUtils.GenerateID();
         }
     }
 }

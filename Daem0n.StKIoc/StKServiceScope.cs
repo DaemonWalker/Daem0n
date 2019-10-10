@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Daem0n.StKIoc
 {
-    public class StKServiceScope : IServiceScope
+    public class StKServiceScope : IServiceScope, IDisposable
     {
         public IServiceProvider ServiceProvider { get; }
         public string ID { get; private set; }
@@ -48,6 +48,7 @@ namespace Daem0n.StKIoc
                 if (disposing)
                 {
                     this.ID = null;
+                    (this.ServiceProvider as IDisposable)?.Dispose();
                 }
                 disposed = true;
             }

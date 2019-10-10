@@ -8,11 +8,9 @@ using System.Text;
 
 namespace Daem0n.StKIoc
 {
-    class StKServiceCollection
+    public class StKServiceCollection
     {
-
         private TypeRelationCollection relations;
-        private Dictionary<string, ObjectContainer> objectContainers;
         private IServiceProvider serviceProvider;
         public StKServiceCollection(IServiceCollection serviceDescriptors)
         {
@@ -21,41 +19,54 @@ namespace Daem0n.StKIoc
             {
                 if (service.ImplementationInstance != null)
                 {
-                    var id = relations.Add(service.ServiceType, service.ServiceType, service.Lifetime).ID;
-                    objectContainers.Add(id, new ObjectContainer(service.ImplementationInstance));
+                    var id = relations.Add(service.ServiceType, service.ServiceType, service.Lifetime, instance: service.ImplementationInstance).ID;
                 }
                 else if (service.ImplementationFactory != null)
                 {
-                    var id = relations.Add(service.ServiceType, service.ImplementationType ?? service.ServiceType, service.Lifetime).ID;
-                    objectContainers.Add(id, new ObjectContainer(service.ImplementationFactory));
+                    var id = relations.Add(service.ServiceType, service.ImplementationType ?? service.ServiceType, service.Lifetime, factory: service.ImplementationFactory).ID;
                 }
                 else
                 {
-                    var id = relations.Add(service.ServiceType, service.ImplementationType, service.Lifetime).ID;
-                    objectContainers.Add(id, new ObjectContainer(() => this.serviceProvider.GetService(service.ServiceType)));
+                    var id = relations.Add(service.ServiceType, service.ImplementationType, service.Lifetime, factory: _ => _.GetService(service.ServiceType)).ID;
                 }
             }
         }
-        public IServiceProvider Build => this.serviceProvider ?? (serviceProvider = new StKServiceProvider(this));
-
-        public TypeRecord GetImplementationType(Type serviceType)
+        public IServiceProvider Build()
+        {
+            this.serviceProvider = new StKServiceProvider(this);
+            this.relations.Add(typeof(IServiceProvider), typeof(StKServiceProvider), ServiceLifetime.Singleton, instance: this.serviceProvider);
+            this.relations.Add(typeof(IServiceScope), typeof(StKServiceScope), ServiceLifetime.Scoped);
+            return this.serviceProvider;
+        }
+        internal TypeRecord GetImplementationType(Type serviceType)
         {
             return relations.Get(serviceType);
         }
-        public TypeRecord GetImplementationType(Type serviceType, ServiceLifetime lifetime)
+        internal TypeRecord GetImplementationType(Type serviceType, ServiceLifetime lifetime)
         {
             var l = relations.GetAll(serviceType).Where(p => p.Lifetime == lifetime);
             return l?.FirstOrDefault();
         }
-        public ObjectContainer GetObjectContainer(string id)
+        internal bool Contains(Type serviceType)
         {
-            if (objectContainers.ContainsKey(id))
+            return this.relations.Contains(serviceType);
+        }
+        internal List<TypeRecord> GetAllImplementationTypes(Type serviceType)
+        {
+            var records = this.relations.GetAll(serviceType);
+            var list = new List<TypeRecord>();
+            foreach (var record in records)
             {
-                return null;
-            }
-            else
-            {
-                return objectContainers[id];
+                if (record.ImplementationType.IsConstructedGenericType)
+                {
+                    var newType = record.ImplementationType.MakeGenericType(serviceType.GetGenericArguments());
+                    var newRec = new TypeRecord(ServiceLifetime.Transient, serviceType, newType, null, _ => _.GetService(newType));
+                    list.Add(newRec);
+                }
+                else
+                {
+                    list.Add(record);
+                }
             }
         }
     }

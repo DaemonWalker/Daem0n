@@ -12,7 +12,7 @@ namespace Daem0n.StKIoc
 
         public IServiceProvider CreateServiceProvider(StKServiceCollection containerBuilder)
         {
-            throw new NotImplementedException();
+            return containerBuilder.Build();
         }
     }
 }
