@@ -2,6 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Description>简单的IOC容器</Description>
+    <Company>jjj</Company>
+    <Authors>Daemon Walker</Authors>
+    <Version>0.1.0</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageProjectUrl>https://github.com/DaemonWalker/Daem0n/tree/master/Daem0n.StKIoc</PackageProjectUrl>
+    <PackageTags>IOC</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
