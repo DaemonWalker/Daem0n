@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Daem0n.StKIoc;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Specification;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ namespace Daem0n.SimIoc.Test
     {
         protected override IServiceProvider CreateServiceProvider(IServiceCollection serviceCollection)
         {
-            var factory = new ServiceProviderFactory();
+            var factory = new StKServiceProviderFactory();
             return factory.CreateServiceProvider(factory.CreateBuilder(serviceCollection));
         }
     }

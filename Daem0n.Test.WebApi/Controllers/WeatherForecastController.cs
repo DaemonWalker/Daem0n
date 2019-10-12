@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace Daem0n.Test.Web.Controllers
+namespace Daem0n.Test.WebApi.Controllers
 {
     [ApiController]
     [Route("[controller]")]

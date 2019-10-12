@@ -5,8 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Daem0n.DI\Daem0n.DI.csproj" />
-    <ProjectReference Include="..\Daem0n.SimIoc\Daem0n.SimIoc.csproj" />
+    <ProjectReference Include="..\Daem0n.StKIoc\Daem0n.StKIoc.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,6 @@
 using System;
 
-namespace Daem0n.Test.Web
+namespace Daem0n.Test.WebApi
 {
     public class WeatherForecast
     {

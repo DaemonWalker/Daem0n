@@ -27,7 +27,7 @@ namespace Daem0n.StKIoc
                 }
                 else
                 {
-                    var id = relations.Add(service.ServiceType, service.ImplementationType, service.Lifetime, factory: _ => _.GetService(service.ServiceType)).ID;
+                    var id = relations.Add(service.ServiceType, service.ImplementationType, service.Lifetime, factory: _ => _.CreateInstance(service.ImplementationType)).ID;
                 }
             }
         }
@@ -36,6 +36,7 @@ namespace Daem0n.StKIoc
             this.serviceProvider = new StKServiceProvider(this);
             this.relations.Add(typeof(IServiceProvider), typeof(StKServiceProvider), ServiceLifetime.Singleton, instance: this.serviceProvider);
             this.relations.Add(typeof(IServiceScope), typeof(StKServiceScope), ServiceLifetime.Scoped);
+            this.relations.Add(typeof(IServiceScopeFactory), typeof(StKServiceProvider), ServiceLifetime.Singleton, instance: this.serviceProvider);
             return this.serviceProvider;
         }
         internal TypeRecord GetImplementationType(Type serviceType)
@@ -51,23 +52,34 @@ namespace Daem0n.StKIoc
         {
             return this.relations.Contains(serviceType);
         }
-        internal List<TypeRecord> GetAllImplementationTypes(Type serviceType)
+        internal List<TypeRecord> GetAllImplementationTypes(Type serviceType, Type[] genericParms)
         {
             var records = this.relations.GetAll(serviceType);
             var list = new List<TypeRecord>();
             foreach (var record in records)
             {
-                if (record.ImplementationType.IsConstructedGenericType)
+                if (record.ImplementationType.IsGenericType &&
+                    record.ImplementationType.ContainsGenericParameters == true)
                 {
-                    var newType = record.ImplementationType.MakeGenericType(serviceType.GetGenericArguments());
-                    var newRec = new TypeRecord(ServiceLifetime.Transient, serviceType, newType, null, _ => _.GetService(newType));
-                    list.Add(newRec);
+                    Type newType = null;
+                    if (genericParms == null)
+                    {
+                        newType = record.ImplementationType.MakeGenericType(serviceType.GetGenericArguments());
+                    }
+                    else
+                    {
+                        newType = record.ImplementationType.MakeGenericType(genericParms);
+                    }
+                    var newRec = new TypeRecord(record.Lifetime, serviceType, newType, null, 
+                        _ => _.CreateInstance(newType), buildFlag: false, id: record.ID);
+                    list.Insert(0, newRec);
                 }
                 else
                 {
-                    list.Add(record);
+                    list.Insert(0, record);
                 }
             }
+            return list;
         }
     }
 }

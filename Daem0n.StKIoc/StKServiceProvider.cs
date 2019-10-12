@@ -1,7 +1,9 @@
 ﻿using Daem0n.StKIoc.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -11,7 +13,7 @@ namespace Daem0n.StKIoc
     class StKServiceProvider : IServiceProvider, IServiceScopeFactory, ISupportRequiredService, IDisposable
     {
         private StKServiceCollection serviceCollection;
-        private StKObjectCollection objectCollection;
+        private StKObjectCollection objectCollection = new StKObjectCollection();
         public IServiceScope ServiceScope { get; private set; }
         private bool disposed = false;
         #region 继承接口
@@ -19,7 +21,7 @@ namespace Daem0n.StKIoc
         {
             var provider = new StKServiceProvider(this);
             var scope = new StKServiceScope(provider);
-            provider.ServiceScope = ServiceScope;
+            provider.ServiceScope = scope;
             return scope;
         }
 
@@ -62,6 +64,7 @@ namespace Daem0n.StKIoc
         public StKServiceProvider(StKServiceCollection serviceCollection)
         {
             this.serviceCollection = serviceCollection;
+            this.ServiceScope = new StKServiceScope(this);
         }
         public StKServiceProvider(StKServiceProvider serviceProvider)
         {
@@ -88,24 +91,53 @@ namespace Daem0n.StKIoc
         {
             var outType = serviceType.GetGenericTypeDefinition();
             var inType = serviceType.GetGenericArguments().First();
-            if (serviceCollection.Contains(serviceType))
+            var newType = typeof(List<>).MakeGenericType(inType);
+            var list = Activator.CreateInstance(newType) as IList;
+            Type checkType = null;
+            Type[] parms = null;
+            if (serviceCollection.Contains(inType))
             {
-                var records = serviceCollection.GetAllImplementationTypes(serviceType);
+                checkType = inType;
+            }
+            else if (inType.IsGenericType && serviceCollection.Contains(inType.GetGenericTypeDefinition()))
+            {
+                checkType = inType.GetGenericTypeDefinition();
+                parms = inType.GetGenericArguments();
+            }
 
-            }
-            else
+            if (checkType != null)
             {
-                var newType = typeof(List<>).MakeGenericType(inType);
-                return Activator.CreateInstance(newType);
+                var records = serviceCollection.GetAllImplementationTypes(checkType, parms);
+                foreach (var record in records)
+                {
+                    list.Add(this.CallRecord(record));
+                }
             }
+            return list;
         }
         private object CreateGeneric(Type serviceType)
         {
-
+            var outType = serviceType.GetGenericTypeDefinition();
+            var inType = serviceType.GetGenericArguments();
+            if (this.serviceCollection.Contains(outType))
+            {
+                var record = this.serviceCollection.GetImplementationType(outType);
+                var newType = record.ImplementationType.MakeGenericType(inType);
+                return this.objectCollection.GetMakedGeneric(this, record, newType);
+            }
+            else
+            {
+                Debug.WriteLine($"Make generictype failed {serviceType.FullName}");
+                return null;
+            }
         }
         #endregion
         #region 域方法
-        internal object Call(Type implementationType)
+        internal object Call(Type implementationType, TypeRecord record)
+        {
+            throw new NotImplementedException();
+        }
+        internal object CreateInstance(Type implementationType)
         {
             var constructors = implementationType.GetConstructors().Where(p => p.IsPublic).OrderByDescending(p => p.GetParameters().Length).ToArray();
             ConstructorInfo constructor = null;
@@ -117,19 +149,48 @@ namespace Daem0n.StKIoc
             if (constructors.Length == 1)
             {
                 constructor = constructors.First();
-
+                parms = constructor.GetParameters().Select(_ => this.GetService(_.ParameterType)).ToArray();
             }
             else
             {
                 foreach (var c in constructors)
                 {
-                    parms = CreateConstructorParams(c);
+                    parms = CreateConstructorParams(this, c);
                     if (parms != null)
                     {
+                        constructor = c;
                         break;
                     }
                 }
             }
+            if (constructor.GetParameters().Length == 0)
+            {
+                parms = new object[0];
+            }
+            if (parms == null)
+            {
+                throw new Exception("No fit constuctors");
+            }
+            var obj = constructor.Invoke(parms);
+            return obj;
+        }
+        private object[] CreateConstructorParams(IServiceProvider serviceProvider, ConstructorInfo constructor)
+        {
+            var ps = constructor.GetParameters();
+            var objs = new List<object>();
+            foreach (var p in ps)
+            {
+                var obj = serviceProvider.GetService(p.ParameterType);
+                if (obj == null)
+                {
+                    return null;
+                }
+                else
+                {
+                    objs.Add(obj);
+                }
+            }
+            return objs.ToArray();
         }
         #endregion
         #region 私有方法
@@ -164,31 +225,14 @@ namespace Daem0n.StKIoc
             }
             else if (record.Lifetime == ServiceLifetime.Transient)
             {
-                return this.GetSingleton(record);
+                return this.GetTransient(record);
             }
             else
             {
                 throw new NotSupportedException($"Unsupported ServiceLifetime {record.Lifetime}");
             }
         }
-        private object[] CreateConstructorParams(ConstructorInfo constructor)
-        {
-            var ps = constructor.GetParameters();
-            var objs = new List<object>();
-            foreach (var p in ps)
-            {
-                var obj = this.GetService(p.ParameterType);
-                if (obj == null)
-                {
-                    return null;
-                }
-                else
-                {
-                    objs.Add(obj);
-                }
-            }
-            return objs.ToArray();
-        }
+
         ~StKServiceProvider()
         {
             this.Dispose(false);

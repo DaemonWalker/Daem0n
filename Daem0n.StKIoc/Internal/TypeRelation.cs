@@ -12,7 +12,7 @@ namespace Daem0n.StKIoc.Internal
         private bool disposed = false;
         private HashSet<Type> types = new HashSet<Type>();
         private ConcurrentBag<TypeRecord> bag = new ConcurrentBag<TypeRecord>();
-        public TypeRecord Add(Type service, Type implement, ServiceLifetime lifetime, object instance = null, Func<IServiceProvider, object> factory = null, bool buildFlag = false)
+        public TypeRecord Add(Type service, Type implement, ServiceLifetime lifetime, object instance = null, Func<IServiceProvider, object> factory = null, bool buildFlag = true)
         {
             if (types.Contains(service) == false)
             {
@@ -28,7 +28,7 @@ namespace Daem0n.StKIoc.Internal
             {
                 return null;
             }
-            return bag.LastOrDefault(p => p.ServiceType == service);
+            return bag.FirstOrDefault(p => p.ServiceType == service);
         }
         public List<TypeRecord> GetAll(Type service)
         {

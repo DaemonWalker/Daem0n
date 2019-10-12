@@ -14,12 +14,12 @@ namespace Daem0n.StKIoc.Internal
         public string ID { get; }
         private object instance;
         private Func<IServiceProvider, object> factory;
-        public TypeRecord(ServiceLifetime lifetime, Type service, Type implementation, object instance, Func<IServiceProvider, object> factory, bool buildFlag = false)
+        public TypeRecord(ServiceLifetime lifetime, Type service, Type implementation, object instance, Func<IServiceProvider, object> factory, bool buildFlag = true, string id = null)
         {
             this.ServiceType = service;
             this.ImplementationType = implementation;
             this.Lifetime = lifetime;
-            this.ID = ToolUtils.GenerateID();
+            this.ID = id ?? ToolUtils.GenerateID();
             this.instance = instance;
             this.factory = factory;
             this.BuildFlag = buildFlag;
@@ -56,5 +56,7 @@ namespace Daem0n.StKIoc.Internal
         {
             return this.factory?.Invoke(serviceProvider);
         }
+        public override string ToString() => $"{this.ServiceType} -> {this.ImplementationType}";
+
     }
 }
