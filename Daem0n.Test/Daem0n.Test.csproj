@@ -9,8 +9,4 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Daem0n.DI\Daem0n.DI.csproj" />
-  </ItemGroup>
-
 </Project>
