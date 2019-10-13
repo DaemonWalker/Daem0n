@@ -32,6 +32,7 @@ namespace Daem0n.SimIoc.Test
             // Assert
             Assert.NotNull(nester);
             nester.Dispose();
+            Assert.Null(nester);
         }
     }
 }

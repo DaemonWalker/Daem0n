@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Daem0n.StKIoc;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Xunit;
@@ -10,7 +11,7 @@ namespace Daem0n.SimIoc.Test
         private IServiceProvider CreateServiceProvider(Func<TestServiceCollection, TestServiceCollection> func)
         {
             var collection = new TestServiceCollection();
-            var factory = new ServiceProviderFactory();
+            var factory = new StKServiceProviderFactory();
             return factory.CreateServiceProvider(factory.CreateBuilder(func(collection)));
         }
         [Fact]
