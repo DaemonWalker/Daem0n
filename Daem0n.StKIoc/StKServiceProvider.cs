@@ -13,7 +13,7 @@ namespace Daem0n.StKIoc
     class StKServiceProvider : IServiceProvider, IServiceScopeFactory, ISupportRequiredService, IDisposable
     {
         private StKServiceCollection serviceCollection;
-        private StKObjectCollection objectCollection = new StKObjectCollection();
+        internal StKObjectCollection ObjectContainer { get; private set; } = new StKObjectCollection();
         public IServiceScope ServiceScope { get; private set; }
         private bool disposed = false;
         #region 继承接口
@@ -69,21 +69,21 @@ namespace Daem0n.StKIoc
         public StKServiceProvider(StKServiceProvider serviceProvider)
         {
             this.serviceCollection = serviceProvider.serviceCollection;
-            this.objectCollection = serviceProvider.objectCollection;
+            this.ObjectContainer = serviceProvider.ObjectContainer;
         }
         #endregion
         #region 处理单个对象
         private object GetSingleton(TypeRecord record)
         {
-            return objectCollection.GetSingleton(this, record);
+            return ObjectContainer.GetSingleton(this, record);
         }
         private object GetScoped(TypeRecord record)
         {
-            return objectCollection.GetScoped(this, record);
+            return ObjectContainer.GetScoped(this, record);
         }
         private object GetTransient(TypeRecord record)
         {
-            return objectCollection.GetTransient(this, record);
+            return ObjectContainer.GetTransient(this, record);
         }
         #endregion
         #region 处理泛型对象
@@ -123,7 +123,7 @@ namespace Daem0n.StKIoc
             {
                 var record = this.serviceCollection.GetImplementationType(outType);
                 var newType = record.ImplementationType.MakeGenericType(inType);
-                return this.objectCollection.GetMakedGeneric(this, record, newType);
+                return this.ObjectContainer.GetMakedGeneric(this, record, newType);
             }
             else
             {
@@ -198,18 +198,18 @@ namespace Daem0n.StKIoc
         {
             if (disposed == false)
             {
+                this.disposed = true;
                 if (dispoing)
                 {
                     if (this.IsRootServiceProvider() == false)
                     {
-                        this.objectCollection.ClearScoped(this.ServiceScope);
+                        this.ObjectContainer.ClearScoped(this.ServiceScope);
                     }
                     else
                     {
-                        this.objectCollection.Dispose();
+                        this.ObjectContainer.Dispose();
                     }
                 }
-                this.disposed = true;
             }
         }
 

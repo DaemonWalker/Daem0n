@@ -10,7 +10,7 @@ namespace Daem0n.StKIoc
     /// <summary>
     /// IOC对象容器
     /// </summary>
-    class StKObjectCollection : IDisposable
+    class StKObjectCollection : IStKProviderMonitor, IDisposable
     {
         #region 私有变量
         /// <summary>
@@ -32,7 +32,7 @@ namespace Daem0n.StKIoc
         /// 域单例对象字典
         /// </summary>
         private ConcurrentDictionary<string, object> scoped = new ConcurrentDictionary<string, object>();
-        
+
         /// <summary>
         /// IOC所有对象集合
         /// </summary>
@@ -77,7 +77,7 @@ namespace Daem0n.StKIoc
         /// <param name="serviceProvider"></param>
         /// <param name="record"></param>
         /// <returns></returns>
-        public object GetSingleton(IServiceProvider serviceProvider, TypeRecord record)
+        internal object GetSingleton(IServiceProvider serviceProvider, TypeRecord record)
         {
             if (record.BuildFlag)
             {
@@ -111,7 +111,7 @@ namespace Daem0n.StKIoc
         /// <param name="serviceProvider"></param>
         /// <param name="record"></param>
         /// <returns></returns>
-        public object GetScoped(IServiceProvider serviceProvider, TypeRecord record)
+        internal object GetScoped(IServiceProvider serviceProvider, TypeRecord record)
         {
             var key = string.Empty;
             if (record.BuildFlag)
@@ -156,7 +156,7 @@ namespace Daem0n.StKIoc
         /// <param name="serviceProvider"></param>
         /// <param name="record"></param>
         /// <returns></returns>
-        public object GetTransient(IServiceProvider serviceProvider, TypeRecord record)
+        internal object GetTransient(IServiceProvider serviceProvider, TypeRecord record)
         {
             var obj = record.CallFactory(serviceProvider);
             this.objects.Add(new ObjectContainer(obj, ServiceLifetime.Transient, serviceProvider.GetScope()));
@@ -170,7 +170,7 @@ namespace Daem0n.StKIoc
         /// <param name="outRecord"></param>
         /// <param name="newType"></param>
         /// <returns></returns>
-        public object GetMakedGeneric(IServiceProvider serviceProvider, TypeRecord outRecord, Type newType)
+        internal object GetMakedGeneric(IServiceProvider serviceProvider, TypeRecord outRecord, Type newType)
         {
             var key = GenerateTempKey(serviceProvider, outRecord, newType);
             if (ContainsTempKey(outRecord.Lifetime, key))
@@ -206,7 +206,7 @@ namespace Daem0n.StKIoc
             }
         }
 
-       
+
 
         /// <summary>
         /// 存储临时对象
@@ -314,6 +314,22 @@ namespace Daem0n.StKIoc
             {
                 return false;
             }
+        }
+
+        public List<ObjectInfo> GetObjectInfos()
+        {
+            var list = new List<ObjectInfo>();
+            foreach (var item in this.objects)
+            {
+                var info = new ObjectInfo();
+                info.Lifetime = item.Lifetime.ToString();
+                info.ObjectType = item.Instance.GetType().FullName;
+                info.SerivceScoped = Convert.ToString(item.ServiceScope?.GetHashCode());
+                //info.MemorySize=
+                list.Add(info);
+            }
+            list = list.OrderBy(_ => _, new ObjectInfo()).ToList();
+            return list;
         }
 
         /// <summary>

@@ -33,10 +33,12 @@ namespace Daem0n.StKIoc
         }
         public IServiceProvider Build()
         {
-            this.serviceProvider = new StKServiceProvider(this);
+            var provider = new StKServiceProvider(this);
+            this.serviceProvider = provider;
             this.relations.Add(typeof(IServiceProvider), typeof(StKServiceProvider), ServiceLifetime.Singleton, instance: this.serviceProvider);
             this.relations.Add(typeof(IServiceScope), typeof(StKServiceScope), ServiceLifetime.Scoped);
             this.relations.Add(typeof(IServiceScopeFactory), typeof(StKServiceProvider), ServiceLifetime.Singleton, instance: this.serviceProvider);
+            this.relations.Add(typeof(IStKProviderMonitor), typeof(StKObjectCollection), ServiceLifetime.Singleton, instance: provider.ObjectContainer);
             return this.serviceProvider;
         }
         internal TypeRecord GetImplementationType(Type serviceType)
@@ -70,7 +72,7 @@ namespace Daem0n.StKIoc
                     {
                         newType = record.ImplementationType.MakeGenericType(genericParms);
                     }
-                    var newRec = new TypeRecord(record.Lifetime, serviceType, newType, null, 
+                    var newRec = new TypeRecord(record.Lifetime, serviceType, newType, null,
                         _ => _.CreateInstance(newType), buildFlag: false, id: record.ID);
                     list.Insert(0, newRec);
                 }

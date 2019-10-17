@@ -1,8 +1,8 @@
-﻿using Daem0n.DI;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 
 namespace Daem0n.Test
@@ -11,7 +11,8 @@ namespace Daem0n.Test
     {
         static void Main(string[] args)
         {
-            Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "Configure{0}Services", "BALABLA"));
+            var l = Enumerable.Range(1, 9);
+            Console.WriteLine(l.FirstOrDefault(_ => _ / 100 > 1));
         }
     }
     class A

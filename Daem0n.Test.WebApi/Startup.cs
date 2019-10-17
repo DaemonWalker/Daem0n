@@ -28,7 +28,7 @@ namespace Daem0n.Test.WebApi
         {
             services.AddControllers();
             services.AddSingleton<SingletonObject>();
-            services.AddSingleton<IFoo, Foo>();
+            services.AddScoped<IFoo, Foo>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

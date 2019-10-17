@@ -1,4 +1,5 @@
-﻿using Daem0n.Test.WebApi.Models;
+﻿using Daem0n.StKIoc;
+using Daem0n.Test.WebApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -23,6 +24,13 @@ namespace Daem0n.Test.WebApi.Controllers
         {
             var tempFoo = serviceProvider.GetService(typeof(IFoo)) as IFoo;
             return new List<string>() { this.foo.ID, tempFoo.ID };
+        }
+
+        [HttpGet]
+        [Route("[action]")]
+        public List<ObjectInfo> MemoryMonitor()
+        {
+            return (serviceProvider.GetService(typeof(IStKProviderMonitor)) as IStKProviderMonitor).GetObjectInfos();
         }
     }
 }
